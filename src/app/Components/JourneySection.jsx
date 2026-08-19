@@ -14,7 +14,7 @@ export default function JourneySection() {
           <SectionMark n="03" title="Application journey" />
         </Reveal>
         <Reveal>
-          <p className="mt-10 max-w-lg text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-10 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
             Every application is a journey forward. JobFlow makes each step visible, so momentum is
             something you can see instead of something you hope for.
           </p>
@@ -30,8 +30,8 @@ export default function JourneySection() {
           ].map(([t, d], i) => (
             <Reveal key={t} delay={i * 70}>
               <div className="h-full bg-surface p-6">
-                <h4 className="font-display text-base font-medium">{t}</h4>
-                <p className="mt-2 text-sm text-muted-foreground">{d}</p>
+                <h4 className="font-display text-lg font-medium">{t}</h4>
+                <p className="mt-2 text-base text-muted-foreground">{d}</p>
               </div>
             </Reveal>
           ))}

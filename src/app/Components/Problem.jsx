@@ -19,10 +19,10 @@ export default function Problem() {
         </Reveal>
         <div className="mt-10 grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <Reveal>
-            <h3 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+            <h3 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
               A job search lives in six places at once.
             </h3>
-            <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
               Every opportunity gets split across a spreadsheet, a browser tab, an inbox thread and
               a calendar invite. Nothing tells you what actually needs attention today.
             </p>
@@ -31,8 +31,8 @@ export default function Problem() {
             {CHAOS.map((c, i) => (
               <Reveal key={c.label} delay={i * 60} className="h-full">
                 <div className="flex h-full items-baseline justify-between gap-4 bg-surface px-5 py-6 transition-colors duration-200 hover:bg-surface-2">
-                  <span className="text-sm">{c.label}</span>
-                  <span className="label-caps shrink-0 text-[10px]">{c.meta}</span>
+                  <span className="text-base">{c.label}</span>
+                  <span className="label-caps shrink-0 text-xs">{c.meta}</span>
                 </div>
               </Reveal>
             ))}

@@ -18,7 +18,7 @@ export default function Approach() {
           <SectionMark n="02" title="The JobFlow approach" />
         </Reveal>
         <Reveal>
-          <h3 className="mt-10 max-w-2xl font-display text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+          <h3 className="mt-10 max-w-2xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
             One workspace. Every opportunity.
           </h3>
         </Reveal>
@@ -29,10 +29,10 @@ export default function Approach() {
                 <span className="num hidden text-xs text-muted-foreground md:block">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h4 className="font-display text-xl font-medium tracking-tight transition-transform duration-200 group-hover:translate-x-1">
+                <h4 className="font-display text-2xl font-medium tracking-tight transition-transform duration-200 group-hover:translate-x-1">
                   {m.name}
                 </h4>
-                <p className="col-span-full text-sm text-muted-foreground md:col-span-1">
+                <p className="col-span-full text-base text-muted-foreground md:col-span-1">
                   {m.note}
                 </p>
               </div>

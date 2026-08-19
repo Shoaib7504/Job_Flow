@@ -18,20 +18,20 @@ export default function Hero() {
           className="mt-8 grid gap-8 animate-rise lg:grid-cols-[1fr_auto] lg:items-end"
           style={{ animationDelay: "140ms" }}
         >
-          <p className="max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Track applications, interviews, deadlines, and opportunities in one intelligent
             workspace.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-0"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-0"
             >
               Start tracking <ArrowUpRight className="size-4" strokeWidth={1.75} />
             </Link>
             <a
               href="#journey"
-              className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-3 text-sm font-medium transition-colors duration-150 hover:bg-surface-2"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-3 text-base font-medium transition-colors duration-150 hover:bg-surface-2"
             >
               View demo
             </a>
@@ -46,10 +46,10 @@ export default function Hero() {
           </div>
           <OpportunityMap />
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
-            <p className="num text-[11px] text-muted-foreground">
+            <p className="num text-xs text-muted-foreground sm:text-sm">
               5 stages · 33 opportunities · updated live
             </p>
-            <p className="num text-[11px] text-muted-foreground">
+            <p className="num text-xs text-muted-foreground sm:text-sm">
               <span className="text-primary">17%</span> saved → offer
             </p>
           </div>

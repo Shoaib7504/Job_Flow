@@ -11,10 +11,10 @@ export default function Dossier() {
         </Reveal>
         <div className="mt-10 grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <Reveal>
-            <h3 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+            <h3 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
               A dossier, not a card.
             </h3>
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-5 max-w-sm text-base leading-relaxed text-muted-foreground">
               Each opportunity opens as a full editorial page: the story of the role, the stage
               you&apos;re at, and the one thing to do next.
             </p>
@@ -23,7 +23,7 @@ export default function Dossier() {
             <article className="rounded-lg border border-border bg-background p-6 sm:p-8">
               <p className="label-caps">Referral · Remote — EU</p>
               <h4 className="mt-3 font-display text-3xl font-semibold tracking-tight">Linear</h4>
-              <p className="text-sm text-muted-foreground">Senior Product Engineer</p>
+              <p className="text-base text-muted-foreground">Senior Product Engineer</p>
               <dl className="mt-8 grid grid-cols-2 gap-y-6 border-y border-border py-6 sm:grid-cols-4">
                 {[
                   ["Stage", "Interview"],
@@ -32,8 +32,8 @@ export default function Dossier() {
                   ["Applied", "Jul 28"],
                 ].map(([k, v]) => (
                   <div key={k}>
-                    <dt className="label-caps text-[10px]">{k}</dt>
-                    <dd className="num mt-1.5 text-sm">{v}</dd>
+                    <dt className="label-caps text-[11px]">{k}</dt>
+                    <dd className="num mt-1.5 text-base">{v}</dd>
                   </div>
                 ))}
               </dl>
@@ -50,14 +50,14 @@ export default function Dossier() {
                         i === 2 ? "bg-primary" : "bg-border",
                       )}
                     />
-                    <span className="text-sm">{t}</span>
-                    <span className="num ml-auto text-xs text-muted-foreground">{d}</span>
+                    <span className="text-base">{t}</span>
+                    <span className="num ml-auto text-xs text-muted-foreground sm:text-sm">{d}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-8 flex items-center justify-between gap-4 rounded-md bg-surface-2 px-4 py-3">
-                <span className="label-caps text-[10px]">Next action</span>
-                <span className="text-sm">Prep systems-thinking story · Aug 21</span>
+                <span className="label-caps text-[11px]">Next action</span>
+                <span className="text-base">Prep systems-thinking story · Aug 21</span>
               </div>
             </article>
           </Reveal>

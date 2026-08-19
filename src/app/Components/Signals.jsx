@@ -9,7 +9,7 @@ const SIGNALS = [
 
 export default function Signals() {
   return (
-    <section className="border-b border-border">
+    <section id="analytics" className="border-b border-border">
       <div className="mx-auto w-11/12 px-5 py-20 sm:px-8 sm:py-28">
         <Reveal>
           <SectionMark n="04" title="Career signals" />
@@ -19,8 +19,8 @@ export default function Signals() {
             <Reveal key={s.k} delay={i * 80}>
               <div className="border-t border-foreground/80 pt-5">
                 <p className="label-caps">{s.k}</p>
-                <p className="num mt-4 text-4xl tracking-tight sm:text-5xl">{s.v}</p>
-                <p className="mt-3 text-sm text-muted-foreground">{s.d}</p>
+                <p className="num mt-4 text-5xl tracking-tight sm:text-6xl">{s.v}</p>
+                <p className="mt-3 text-base text-muted-foreground">{s.d}</p>
               </div>
             </Reveal>
           ))}

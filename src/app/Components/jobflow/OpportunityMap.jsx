@@ -84,7 +84,7 @@ export function OpportunityMap({ className, compact = false, active: activeProp 
               {!compact && (
                 <span
                   className={cn(
-                    "num text-[10px] transition-colors duration-300",
+                    "num text-[11px] transition-colors duration-300",
                     state === "todo" ? "text-muted-foreground/45" : "text-muted-foreground",
                   )}
                 >
@@ -147,7 +147,7 @@ export function OpportunityMap({ className, compact = false, active: activeProp 
                 <span
                   className={cn(
                     "label-caps truncate transition-colors duration-300",
-                    compact ? "text-[9px]" : "text-[10px] sm:text-[11px]",
+                    compact ? "text-[10px]" : "text-[11px] sm:text-xs",
                     state === "current" && "text-foreground",
                     state === "done" && "text-primary",
                   )}
