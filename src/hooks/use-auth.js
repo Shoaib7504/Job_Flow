@@ -98,10 +98,12 @@ export function useRegister() {
   return useMutation({
     mutationFn: async ({ name, email, password }) => {
       const res = await api.post("/auth/register", { name, email, password });
-      if (res.token) {
-        setToken(res.token);
+      const user = res.user || res;
+      const token = res.token;
+      if (token) {
+        setToken(token);
       }
-      return res.user || res;
+      return { user, token };
     },
   });
 }
@@ -110,10 +112,12 @@ export function useLogin() {
   return useMutation({
     mutationFn: async ({ email, password }) => {
       const res = await api.post("/auth/login", { email, password });
-      if (res.token) {
-        setToken(res.token);
+      const user = res.user || res;
+      const token = res.token;
+      if (token) {
+        setToken(token);
       }
-      return res.user || res;
+      return { user, token };
     },
   });
 }

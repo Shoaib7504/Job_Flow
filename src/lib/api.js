@@ -73,9 +73,9 @@ export async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     let errorMessage =
+      (Array.isArray(data?.errors) && data.errors[0]?.message) ||
       data?.message ||
       data?.error ||
-      (Array.isArray(data?.errors) && data.errors[0]?.message) ||
       `Request failed with status ${response.status}`;
     const error = new Error(errorMessage);
     error.status = response.status;

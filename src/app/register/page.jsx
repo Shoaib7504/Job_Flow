@@ -27,17 +27,20 @@ export default function RegisterPage() {
   } = useForm();
 
   const onSubmit = (data) => {
-    register.mutate(data, {
-      onSuccess: (user) => {
-        persistUser(user);
-        setDone(true);
-        toast.success("Workspace created — welcome aboard.");
-        router.push("/dashboard");
-      },
-      onError: (err) => {
-        toast.error(err.message);
-      },
-    });
+    register.mutate(
+      { name: data.name, email: data.email, password: data.password },
+      {
+        onSuccess: (result) => {
+          persistUser(result);
+          setDone(true);
+          toast.success("Workspace created — welcome aboard.");
+          router.push("/dashboard");
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to create account");
+        },
+      }
+    );
   };
 
   return (

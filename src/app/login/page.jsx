@@ -27,17 +27,20 @@ export default function LoginPage() {
   } = useForm();
 
   const onSubmit = (data) => {
-    login.mutate(data, {
-      onSuccess: (user) => {
-        persistUser(user);
-        setDone(true);
-        toast.success("Welcome back.");
-        router.push("/dashboard");
-      },
-      onError: (err) => {
-        toast.error(err.message);
-      },
-    });
+    login.mutate(
+      { email: data.email, password: data.password },
+      {
+        onSuccess: (result) => {
+          persistUser(result);
+          setDone(true);
+          toast.success("Welcome back.");
+          router.push("/dashboard");
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to sign in");
+        },
+      }
+    );
   };
 
   return (
