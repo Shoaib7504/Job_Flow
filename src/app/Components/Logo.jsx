@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export default function Logo({ className, wordmark = true }) {
-  return (
-    <Link
-      href="/"
-      aria-label="JobFlow home"
-      className={cn("group inline-flex items-center gap-2.5", className)}
-    >
+export default function Logo({ className, wordmark = true, link = true }) {
+  const mark = (
+    <>
       <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.18)] ring-1 ring-inset ring-white/15 transition-transform duration-300 ease-out group-hover:-rotate-6 group-hover:scale-105">
         <svg
           viewBox="0 0 24 24"
@@ -31,6 +27,20 @@ export default function Logo({ className, wordmark = true }) {
           Job<span className="text-primary">Flow</span>
         </span>
       )}
+    </>
+  );
+
+  if (!link) {
+    return <span className={cn("group inline-flex items-center gap-2.5", className)}>{mark}</span>;
+  }
+
+  return (
+    <Link
+      href="/"
+      aria-label="JobFlow home"
+      className={cn("group inline-flex items-center gap-2.5", className)}
+    >
+      {mark}
     </Link>
   );
 }

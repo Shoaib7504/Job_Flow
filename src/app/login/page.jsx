@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { Check, Loader2 } from "lucide-react";
 import { OpportunityMap } from "@/app/Components/jobflow/OpportunityMap";
 import Logo from "@/app/Components/Logo";
-import { Input } from "@/app/ui/input";
-import { Label } from "@/app/ui/label";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {

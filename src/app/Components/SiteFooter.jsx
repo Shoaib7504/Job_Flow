@@ -64,6 +64,7 @@ export default function SiteFooter() {
                   id="footer-email"
                   type="email"
                   required
+                  suppressHydrationWarning
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
