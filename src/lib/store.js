@@ -2,13 +2,54 @@
 
 import { useSyncExternalStore } from "react";
 
+const STORAGE_KEY = "job-flow.applications";
+
 let apps = [];
+let loaded = false;
 const listeners = new Set();
 
 function uid() {
   return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
     : `id-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function loadStorage() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("Failed to load applications from localStorage:", e);
+    return [];
+  }
+}
+
+function saveStorage(data) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("Failed to save applications to localStorage:", e);
+  }
+}
+
+function initStorage() {
+  if (typeof window !== "undefined" && !loaded) {
+    apps = loadStorage();
+    loaded = true;
+  }
+}
+
+initStorage();
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) {
+      apps = loadStorage();
+      emit();
+    }
+  });
 }
 
 function emit() {
@@ -23,12 +64,13 @@ function setStage(id, stage) {
           stage,
           updatedAt: new Date().toISOString(),
           timeline: [
-            ...a.timeline,
+            ...(a.timeline || []),
             { id: uid(), at: new Date().toISOString(), label: `Moved to ${stage}` },
           ],
         }
       : a,
   );
+  saveStorage(apps);
   emit();
 }
 
@@ -53,6 +95,7 @@ function add(draft) {
     ],
   };
   apps = [app, ...apps];
+  saveStorage(apps);
   emit();
   return app;
 }
@@ -61,6 +104,7 @@ function addNote(id, text) {
   apps = apps.map((a) =>
     a.id === id ? { ...a, notes: text, updatedAt: new Date().toISOString() } : a,
   );
+  saveStorage(apps);
   emit();
 }
 
@@ -70,14 +114,15 @@ function addInterview(id, { kind, withWhom, at }) {
       ? {
           ...a,
           updatedAt: new Date().toISOString(),
-          interviews: [...a.interviews, { id: uid(), kind, withWhom, at }],
+          interviews: [...(a.interviews || []), { id: uid(), kind, withWhom, at }],
           timeline: [
-            ...a.timeline,
+            ...(a.timeline || []),
             { id: uid(), at: new Date().toISOString(), label: `Interview scheduled: ${kind}` },
           ],
         }
       : a,
   );
+  saveStorage(apps);
   emit();
 }
 
@@ -87,10 +132,11 @@ function addReminder(id, { label, at }) {
       ? {
           ...a,
           updatedAt: new Date().toISOString(),
-          reminders: [...a.reminders, { id: uid(), label, at, done: false }],
+          reminders: [...(a.reminders || []), { id: uid(), label, at, done: false }],
         }
       : a,
   );
+  saveStorage(apps);
   emit();
 }
 
@@ -99,17 +145,21 @@ function toggleReminder(id, reminderId) {
     a.id === id
       ? {
           ...a,
-          reminders: a.reminders.map((r) => (r.id === reminderId ? { ...r, done: !r.done } : r)),
+          reminders: (a.reminders || []).map((r) => (r.id === reminderId ? { ...r, done: !r.done } : r)),
         }
       : a,
   );
+  saveStorage(apps);
   emit();
 }
 
 function remove(id) {
   apps = apps.filter((a) => a.id !== id);
+  saveStorage(apps);
   emit();
 }
+
+const EMPTY_ARRAY = [];
 
 export function useStore() {
   const state = useSyncExternalStore(
@@ -117,8 +167,13 @@ export function useStore() {
       listeners.add(cb);
       return () => listeners.delete(cb);
     },
-    () => apps,
-    () => apps,
+    () => {
+      if (typeof window !== "undefined" && !loaded) {
+        initStorage();
+      }
+      return apps;
+    },
+    () => EMPTY_ARRAY,
   );
   return {
     apps: state,
