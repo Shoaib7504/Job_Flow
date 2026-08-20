@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Loader2, Menu, X } from "lucide-react";
+import { toast } from "sonner";
 import Logo from "./Logo";
+import { useAuth, useLogout } from "@/hooks/use-auth";
 
 const navLinks = [
   { label: "Product", href: "#approach" },
@@ -13,6 +15,16 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => toast.success("Signed out — see you soon."),
+      onError: (err) => toast.error(err.message ?? "Could not sign out."),
+      onSettled: () => logout(),
+    });
+  };
 
   return (
     <header className="sticky top-0 z-40 mx-auto w-11/12 rounded-xl border-b border-border bg-background/85 shadow-sm backdrop-blur-md">
@@ -32,19 +44,41 @@ const Navbar = () => {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground sm:block"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="hidden items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition-transform duration-150 hover:-translate-y-px active:translate-y-0 sm:inline-flex"
-          >
-            Register
-            <ArrowUpRight className="size-3.5" strokeWidth={2} />
-          </Link>
+          {user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground sm:block"
+              >
+                Dashboard
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                className="hidden cursor-pointer items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition-transform duration-150 hover:-translate-y-px active:translate-y-0 disabled:opacity-70 sm:inline-flex"
+              >
+                {logoutMutation.isPending && <Loader2 className="size-3.5 animate-spin" />}
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground sm:block"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="hidden items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition-transform duration-150 hover:-translate-y-px active:translate-y-0 sm:inline-flex"
+              >
+                Register
+                <ArrowUpRight className="size-3.5" strokeWidth={2} />
+              </Link>
+            </>
+          )}
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -71,21 +105,47 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="mt-3 flex flex-col gap-2 border-t border-border pt-4">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-base text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setOpen(false)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2.5 text-base font-medium text-primary-foreground"
-              >
-                Register
-                <ArrowUpRight className="size-4" strokeWidth={2} />
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-3 py-2 text-base text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      handleLogout();
+                    }}
+                    disabled={logoutMutation.isPending}
+                    className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2.5 text-base font-medium text-primary-foreground disabled:opacity-70"
+                  >
+                    {logoutMutation.isPending && <Loader2 className="size-4 animate-spin" />}
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-3 py-2 text-base text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2.5 text-base font-medium text-primary-foreground"
+                  >
+                    Register
+                    <ArrowUpRight className="size-4" strokeWidth={2} />
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>

@@ -1,32 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { OpportunityMap } from "@/app/Components/jobflow/OpportunityMap";
 import Logo from "@/app/Components/Logo";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth, useRegister } from "@/hooks/use-auth";
 
 export default function RegisterPage() {
-  const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const router = useRouter();
+  const { login: persistUser } = useAuth();
+  const register = useRegister();
 
   const {
-    register,
+    register: registerField,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
   const onSubmit = (data) => {
-    console.log("Register form data:", data);
-    setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
-      setDone(true);
-    }, 500);
+    register.mutate(data, {
+      onSuccess: (user) => {
+        persistUser(user);
+        setDone(true);
+        toast.success("Workspace created — welcome aboard.");
+        router.push("/dashboard");
+      },
+      onError: (err) => {
+        toast.error(err.message);
+      },
+    });
   };
 
   return (
@@ -93,7 +104,7 @@ export default function RegisterPage() {
                 id="name"
                 placeholder="Alex Mercer"
                 autoComplete="name"
-                {...register("name", { required: "Tell us what to call you." })}
+                {...registerField("name", { required: "Tell us what to call you." })}
               />
             </Field>
             <Field label="Email" error={errors.email?.message} id="email">
@@ -102,7 +113,7 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="you@work.com"
                 autoComplete="email"
-                {...register("email", {
+                {...registerField("email", {
                   required: "Enter a valid email address.",
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -117,12 +128,11 @@ export default function RegisterPage() {
               id="password"
               hint="At least 8 characters"
             >
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="new-password"
-                {...register("password", {
+                {...registerField("password", {
                   required: "Use at least 8 characters.",
                   minLength: { value: 8, message: "Use at least 8 characters." },
                 })}
@@ -131,10 +141,10 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-0 disabled:opacity-70"
+              disabled={register.isPending}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-0 disabled:opacity-70"
             >
-              {loading && <Loader2 className="size-4 animate-spin" />}
+              {register.isPending && <Loader2 className="size-4 animate-spin" />}
               Create your account
             </button>
 

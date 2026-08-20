@@ -1,18 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { OpportunityMap } from "@/app/Components/jobflow/OpportunityMap";
 import Logo from "@/app/Components/Logo";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth, useLogin } from "@/hooks/use-auth";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const router = useRouter();
+  const { login: persistUser } = useAuth();
+  const login = useLogin();
 
   const {
     register,
@@ -21,12 +27,17 @@ export default function LoginPage() {
   } = useForm();
 
   const onSubmit = (data) => {
-    console.log("Login form data:", data);
-    setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
-      setDone(true);
-    }, 500);
+    login.mutate(data, {
+      onSuccess: (user) => {
+        persistUser(user);
+        setDone(true);
+        toast.success("Welcome back.");
+        router.push("/dashboard");
+      },
+      onError: (err) => {
+        toast.error(err.message);
+      },
+    });
   };
 
   return (
@@ -104,9 +115,8 @@ export default function LoginPage() {
               />
             </Field>
             <Field label="Password" error={errors.password?.message} id="password">
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
                 {...register("password", {
@@ -127,10 +137,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-0 disabled:opacity-70"
+              disabled={login.isPending}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-0 disabled:opacity-70"
             >
-              {loading && <Loader2 className="size-4 animate-spin" />}
+              {login.isPending && <Loader2 className="size-4 animate-spin" />}
               Sign in
             </button>
 

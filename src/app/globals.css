@@ -314,3 +314,51 @@
 @utility animate-flow {
   animation: flow 3.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
+
+/* Sonner toasts — themed with design tokens */
+[data-sonner-toaster] {
+  font-family: var(--font-sans);
+  --border-radius: var(--radius-md) !important;
+}
+
+[data-sonner-toaster][data-sonner-theme="light"] {
+  --normal-bg: var(--color-card) !important;
+  --normal-border: var(--color-border-strong) !important;
+  --normal-text: var(--color-foreground) !important;
+  --normal-muted: var(--color-muted-foreground) !important;
+
+  --success-bg: color-mix(in oklab, var(--color-success) 9%, var(--color-card)) !important;
+  --success-border: color-mix(in oklab, var(--color-success) 55%, var(--color-border)) !important;
+  --success-text: var(--color-foreground) !important;
+
+  --info-bg: color-mix(in oklab, var(--color-info) 9%, var(--color-card)) !important;
+  --info-border: color-mix(in oklab, var(--color-info) 55%, var(--color-border)) !important;
+  --info-text: var(--color-foreground) !important;
+
+  --warning-bg: color-mix(in oklab, var(--color-warning) 9%, var(--color-card)) !important;
+  --warning-border: color-mix(in oklab, var(--color-warning) 55%, var(--color-border)) !important;
+  --warning-text: var(--color-foreground) !important;
+
+  --error-bg: color-mix(in oklab, var(--color-destructive) 9%, var(--color-card)) !important;
+  --error-border: color-mix(in oklab, var(--color-destructive) 55%, var(--color-border)) !important;
+  --error-text: var(--color-foreground) !important;
+}
+
+[data-sonner-toast][data-styled="true"] {
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--color-foreground) 6%, transparent),
+    0 8px 24px -6px color-mix(in oklab, var(--color-foreground) 18%, transparent);
+}
+
+[data-sonner-toast][data-rich-colors="true"][data-type="success"] [data-icon] {
+  color: var(--color-success);
+}
+[data-sonner-toast][data-rich-colors="true"][data-type="info"] [data-icon] {
+  color: var(--color-info);
+}
+[data-sonner-toast][data-rich-colors="true"][data-type="warning"] [data-icon] {
+  color: var(--color-warning);
+}
+[data-sonner-toast][data-rich-colors="true"][data-type="error"] [data-icon] {
+  color: var(--color-destructive);
+}

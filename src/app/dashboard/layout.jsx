@@ -1,3 +1,5 @@
+import RequireAuth from "@/app/Components/RequireAuth";
+
 export const metadata = {
   title: "Dashboard — JobFlow Career OS",
   description:
@@ -9,5 +11,5 @@ export const metadata = {
 };
 
 export default function DashboardLayout({ children }) {
-  return children;
+  return <RequireAuth>{children}</RequireAuth>;
 }

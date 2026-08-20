@@ -11,7 +11,6 @@ import {
   PlusCircle,
   Settings,
 } from "lucide-react";
-import { Toaster } from "sonner";
 import Logo from "@/app/Components/Logo";
 import { ThemeToggle } from "@/app/Components/jobflow/ThemeToggle";
 import { cn } from "@/lib/utils";
@@ -119,8 +118,6 @@ export function AppShell({ children }) {
         </header>
         <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">{children}</div>
       </SidebarInset>
-
-      <Toaster position="bottom-right" toastOptions={{ className: "!border-border" }} />
     </SidebarProvider>
   );
 }
