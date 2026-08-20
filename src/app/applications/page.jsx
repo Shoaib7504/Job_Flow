@@ -206,19 +206,23 @@ function Applications() {
           </DialogHeader>
           <form
             className="grid gap-4 sm:grid-cols-2"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              const created = add(draft);
-              setOpen(false);
-              setDraft({
-                company: "",
-                role: "",
-                location: "",
-                salary: "",
-                source: SOURCES[0],
-                stage: "SAVED",
-              });
-              toast.success(`${created.company} added to your pipeline`);
+              try {
+                const created = await add(draft);
+                setOpen(false);
+                setDraft({
+                  company: "",
+                  role: "",
+                  location: "",
+                  salary: "",
+                  source: SOURCES[0],
+                  stage: "SAVED",
+                });
+                toast.success(`${created?.company || draft.company} added to your pipeline`);
+              } catch (err) {
+                toast.error(err.message || "Failed to add application");
+              }
             }}
           >
             <Field label="Company">

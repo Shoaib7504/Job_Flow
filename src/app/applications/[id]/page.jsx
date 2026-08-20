@@ -91,9 +91,13 @@ function Detail() {
           )}
           {next && (
             <button
-              onClick={() => {
-                setStage(app.id, next);
-                toast.success(`Advanced to ${next}`);
+              onClick={async () => {
+                try {
+                  await setStage(app.id, next);
+                  toast.success(`Advanced to ${next}`);
+                } catch (err) {
+                  toast.error(err.message || `Failed to advance to ${next}`);
+                }
               }}
               className="rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px"
             >
@@ -101,10 +105,14 @@ function Detail() {
             </button>
           )}
           <button
-            onClick={() => {
-              remove(app.id);
-              toast("Dossier removed");
-              void navigate.push("/applications");
+            onClick={async () => {
+              try {
+                await remove(app.id);
+                toast("Dossier removed");
+                navigate.push("/applications");
+              } catch (err) {
+                toast.error(err.message || "Failed to remove dossier");
+              }
             }}
             aria-label="Delete application"
             className="rounded-md border border-border p-2 text-muted-foreground transition-colors hover:border-destructive/50 hover:text-destructive"
@@ -120,9 +128,13 @@ function Detail() {
         <div className="mt-6">
           <Journey
             stage={app.stage}
-            onSelect={(s) => {
-              setStage(app.id, s);
-              toast.success(`Stage set to ${s}`);
+            onSelect={async (s) => {
+              try {
+                await setStage(app.id, s);
+                toast.success(`Stage set to ${s}`);
+              } catch (err) {
+                toast.error(err.message || `Failed to update stage to ${s}`);
+              }
             }}
           />
         </div>
@@ -168,10 +180,14 @@ function Detail() {
               className="mt-4 resize-none bg-surface"
             />
             <button
-              onClick={() => {
-                addNote(app.id, notes ?? app.notes);
-                setNotes(null);
-                toast.success("Notes saved");
+              onClick={async () => {
+                try {
+                  await addNote(app.id, notes ?? app.notes);
+                  setNotes(null);
+                  toast.success("Notes saved");
+                } catch (err) {
+                  toast.error(err.message || "Failed to save notes");
+                }
               }}
               className="mt-3 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:border-border-strong"
             >
@@ -199,15 +215,19 @@ function Detail() {
             </ul>
             <form
               className="mt-4 space-y-3 border-t border-border pt-4"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                addInterview(app.id, {
-                  kind: interview.kind,
-                  withWhom: interview.withWhom || "TBD",
-                  at: new Date(interview.at).toISOString(),
-                });
-                setInterview({ kind: "", withWhom: "", at: "" });
-                toast.success("Interview scheduled");
+                try {
+                  await addInterview(app.id, {
+                    kind: interview.kind,
+                    withWhom: interview.withWhom || "TBD",
+                    at: new Date(interview.at).toISOString(),
+                  });
+                  setInterview({ kind: "", withWhom: "", at: "" });
+                  toast.success("Interview scheduled");
+                } catch (err) {
+                  toast.error(err.message || "Failed to schedule interview");
+                }
               }}
             >
               <div className="space-y-1.5">
@@ -256,7 +276,13 @@ function Detail() {
                   <input
                     type="checkbox"
                     checked={r.done}
-                    onChange={() => toggleReminder(app.id, r.id)}
+                    onChange={async () => {
+                      try {
+                        await toggleReminder(app.id, r.id);
+                      } catch (err) {
+                        toast.error(err.message || "Failed to update reminder");
+                      }
+                    }}
                     className="mt-1 size-3.5 accent-[var(--color-primary)]"
                   />
                   <span className="min-w-0">
@@ -273,14 +299,18 @@ function Detail() {
             </ul>
             <form
               className="mt-4 space-y-3 border-t border-border pt-4"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                addReminder(app.id, {
-                  label: reminder.label,
-                  at: new Date(reminder.at).toISOString(),
-                });
-                setReminder({ label: "", at: "" });
-                toast.success("Reminder added");
+                try {
+                  await addReminder(app.id, {
+                    label: reminder.label,
+                    at: new Date(reminder.at).toISOString(),
+                  });
+                  setReminder({ label: "", at: "" });
+                  toast.success("Reminder added");
+                } catch (err) {
+                  toast.error(err.message || "Failed to add reminder");
+                }
               }}
             >
               <Input

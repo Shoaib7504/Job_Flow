@@ -33,10 +33,15 @@ export default function Pipeline() {
                   setOver(stage);
                 }}
                 onDragLeave={() => setOver((s) => (s === stage ? null : s))}
-                onDrop={() => {
+                onDrop={async () => {
                   if (dragging) {
-                    setStage(dragging, stage);
-                    toast.success(`Moved to ${stage}`);
+                    const currentId = dragging;
+                    try {
+                      await setStage(currentId, stage);
+                      toast.success(`Moved to ${stage}`);
+                    } catch (err) {
+                      toast.error(err.message || `Failed to move to ${stage}`);
+                    }
                   }
                   setDragging(null);
                   setOver(null);

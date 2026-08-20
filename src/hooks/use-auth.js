@@ -3,6 +3,8 @@
 import * as React from "react";
 import { createContext, useCallback, useContext, useEffect, useSyncExternalStore } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { api, clearToken, setToken } from "@/lib/api";
+import { fetchApplications } from "@/lib/store";
 
 const STORAGE_KEY = "job-flow.user";
 
@@ -20,6 +22,7 @@ function emit() {
 }
 
 function readUser() {
+  if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     userCache = raw ? JSON.parse(raw) : null;
@@ -54,23 +57,32 @@ export function AuthProvider({ children }) {
   const ready = useSyncExternalStore(subscribeToStore, getHydratedSnapshot, getHydratedSnapshot);
 
   const login = useCallback((data) => {
-    userCache = data;
+    if (!data) return;
+    const userData = data.user || data;
+    const token = data.token;
+    if (token) {
+      setToken(token);
+    }
+    userCache = userData;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
     } catch {
       // ignore storage failures
     }
     emit();
+    fetchApplications();
   }, []);
 
   const logout = useCallback(() => {
     userCache = null;
+    clearToken();
     try {
       window.localStorage.removeItem(STORAGE_KEY);
     } catch {
       // ignore storage failures
     }
     emit();
+    fetchApplications();
   }, []);
 
   return <AuthContext.Provider value={{ user, ready, login, logout }}>{children}</AuthContext.Provider>;
@@ -84,18 +96,38 @@ export function useAuth() {
 
 export function useRegister() {
   return useMutation({
-    mutationFn: async ({ name, email }) => ({ name, email }),
+    mutationFn: async ({ name, email, password }) => {
+      const res = await api.post("/auth/register", { name, email, password });
+      if (res.token) {
+        setToken(res.token);
+      }
+      return res.user || res;
+    },
   });
 }
 
 export function useLogin() {
   return useMutation({
-    mutationFn: async ({ email }) => ({ email }),
+    mutationFn: async ({ email, password }) => {
+      const res = await api.post("/auth/login", { email, password });
+      if (res.token) {
+        setToken(res.token);
+      }
+      return res.user || res;
+    },
   });
 }
 
 export function useLogout() {
   return useMutation({
-    mutationFn: async () => null,
+    mutationFn: async () => {
+      try {
+        await api.post("/auth/logout");
+      } catch {
+        // ignore logout errors on client
+      }
+      clearToken();
+      return null;
+    },
   });
 }

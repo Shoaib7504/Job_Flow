@@ -12,6 +12,7 @@ import {
   Settings,
 } from "lucide-react";
 import Logo from "@/app/Components/Logo";
+import RequireAuth from "@/app/Components/RequireAuth";
 import { ThemeToggle } from "@/app/Components/jobflow/ThemeToggle";
 import { cn } from "@/lib/utils";
 import {
@@ -43,7 +44,8 @@ export function AppShell({ children }) {
   const pathname = usePathname();
 
   return (
-    <SidebarProvider>
+    <RequireAuth>
+      <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader className="border-b border-sidebar-border px-2 py-3">
           <SidebarMenu>
@@ -119,6 +121,7 @@ export function AppShell({ children }) {
         <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">{children}</div>
       </SidebarInset>
     </SidebarProvider>
+    </RequireAuth>
   );
 }
 
