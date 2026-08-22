@@ -2,7 +2,17 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { ArrowUpRight, CalendarClock, Sparkles, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  CalendarClock,
+  CheckCircle2,
+  Clock,
+  PlusCircle,
+  Sparkles,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -12,24 +22,63 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AppShell, PageHeader } from "@/app/Components/jobflow/AppShell";
+import { AppShell, PageHeader, useAppShell } from "@/app/Components/jobflow/AppShell";
 import { JourneyRail } from "@/app/Components/jobflow/Journey";
+import { DashboardSkeleton } from "@/app/Components/jobflow/Skeletons";
 import { useStore } from "@/lib/store";
-import { STAGES, fmtShort, relative, stageIndex } from "@/lib/jobflow";
+import {
+  STAGES,
+  STAGE_META,
+  fmtDate,
+  fmtShort,
+  getNextAction,
+  isNegativeStage,
+  relative,
+  stageIndex,
+} from "@/lib/jobflow";
+import { cn } from "@/lib/utils";
 
 const NOW = Date.now();
 
 export default function Dashboard() {
-  const { apps } = useStore();
+  const { apps, isFetching } = useStore();
+  const { openAddModal } = useAppShell();
+
+  // Dynamic greeting based on time of day
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, []);
 
   const stats = useMemo(() => {
     const total = apps.length;
-    const active = apps.filter((a) => !["ACCEPTED"].includes(a.stage)).length;
+    const active = apps.filter((a) => !isNegativeStage(a.stage)).length;
     const interviews = apps.filter((a) => stageIndex(a.stage) >= 3).length;
     const offers = apps.filter((a) => stageIndex(a.stage) >= 4).length;
     const applied = apps.filter((a) => stageIndex(a.stage) >= 1).length;
     const conversion = applied ? Math.round((interviews / applied) * 100) : 0;
-    return { total, active, interviews, offers, conversion };
+    
+    // Weekly trend (+X this week)
+    const oneWeekAgo = NOW - 7 * 86400000;
+    const addedThisWeek = apps.filter((a) => new Date(a.appliedAt).getTime() > oneWeekAgo).length;
+
+    return { total, active, interviews, offers, conversion, addedThisWeek };
+  }, [apps]);
+
+  // Determine top priority Next Action item
+  const nextActionItem = useMemo(() => {
+    if (!apps.length) return null;
+    const actions = apps
+      .map((app) => getNextAction(app))
+      .filter(Boolean);
+
+    if (!actions.length) return null;
+
+    // Prioritize high urgency, then medium, then low
+    const urgencyWeight = { high: 3, medium: 2, low: 1 };
+    return actions.sort((a, b) => urgencyWeight[b.urgency] - urgencyWeight[a.urgency])[0];
   }, [apps]);
 
   const momentum = useMemo(() => {
@@ -55,7 +104,7 @@ export default function Dashboard() {
   );
   const maxStage = Math.max(1, ...distribution.map((d) => d.count));
 
-  const upcoming = useMemo(
+  const upcomingInterviews = useMemo(
     () =>
       apps
         .flatMap((a) => a.interviews.map((i) => ({ ...i, app: a })))
@@ -65,12 +114,11 @@ export default function Dashboard() {
     [apps],
   );
 
-  const followUps = useMemo(
+  const recentApps = useMemo(
     () =>
-      apps
-        .filter((a) => stageIndex(a.stage) >= 1 && stageIndex(a.stage) <= 2)
-        .sort((a, b) => +new Date(a.updatedAt) - +new Date(b.updatedAt))
-        .slice(0, 3),
+      [...apps]
+        .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
+        .slice(0, 5),
     [apps],
   );
 
@@ -87,66 +135,118 @@ export default function Dashboard() {
       .sort((a, b) => b.rate - a.rate)[0];
   }, [apps]);
 
-  const activity = useMemo(
-    () =>
-      apps
-        .flatMap((a) => a.timeline.map((t) => ({ ...t, app: a })))
-        .sort((a, b) => +new Date(b.at) - +new Date(a.at))
-        .slice(0, 7),
-    [apps],
-  );
+  if (!apps.length && isFetching) {
+    return (
+      <AppShell>
+        <DashboardSkeleton />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Career command center"
-        title="Good momentum. Keep the pipeline warm."
-        description="A live read of where every opportunity stands, what needs attention today, and where your best signal is coming from."
+        eyebrow="Career Command Center"
+        title={`${greeting} — here's what needs your attention today.`}
+        description="A live read of where every opportunity stands, what needs immediate follow-up, and your search momentum."
         actions={
-          <Link
-            href="/applications"
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-transform duration-150 hover:-translate-y-px"
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-transform hover:-translate-y-px active:translate-y-0"
           >
-            New application
-            <ArrowUpRight className="size-4" />
-          </Link>
+            <PlusCircle className="size-4" />
+            + Add Application
+          </button>
         }
       />
 
-      {/* Integrated statistics strip */}
+      {/* ⚡ NEXT ACTION (Hero Section) */}
+      <section className="mb-8 overflow-hidden rounded-xl border border-primary/25 bg-gradient-to-br from-primary/10 via-surface to-surface p-6 shadow-sm relative">
+        <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary uppercase tracking-wider">
+              <Zap className="size-3.5 fill-primary" /> Next Action
+            </span>
+            {nextActionItem && (
+              <span className="num text-xs text-muted-foreground hidden sm:inline">
+                High Priority Callout
+              </span>
+            )}
+          </div>
+          {nextActionItem && (
+            <span className="label-caps text-[11px] text-muted-foreground">
+              {nextActionItem.company}
+            </span>
+          )}
+        </div>
+
+        {nextActionItem ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1 max-w-2xl">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                {nextActionItem.title}
+              </h2>
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Clock className="size-3.5 shrink-0" />
+                {nextActionItem.subtitle}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <Link
+                href={`/applications/${nextActionItem.appId}`}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow transition-transform hover:-translate-y-px"
+              >
+                {nextActionItem.actionLabel}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 py-2 text-muted-foreground">
+            <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-foreground">All caught up!</p>
+              <p className="text-xs">No overdue follow-ups or pending reminders. Keep adding opportunities to keep your pipeline warm.</p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Integrated Statistics Grid */}
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border lg:grid-cols-4">
         {[
-          { label: "Tracked", value: stats.total, meta: "opportunities" },
-          { label: "In motion", value: stats.active, meta: "active pursuits" },
-          { label: "Interviewing", value: stats.interviews, meta: "late stage" },
-          { label: "Conversion", value: `${stats.conversion}%`, meta: "applied → interview" },
+          { label: "Total Applications", value: stats.total, meta: `${stats.addedThisWeek >= 0 ? `+${stats.addedThisWeek}` : stats.addedThisWeek} this week` },
+          { label: "Active Pursuits", value: stats.active, meta: "in active pipeline" },
+          { label: "Interviews", value: stats.interviews, meta: `${stats.offers} offer stage` },
+          { label: "Conversion Rate", value: `${stats.conversion}%`, meta: "applied → interview" },
         ].map((s) => (
-          <div key={s.label} className="bg-surface px-5 py-6">
-            <p className="label-caps">{s.label}</p>
-            <p className="num mt-3 text-3xl">{s.value}</p>
+          <div key={s.label} className="bg-surface px-5 py-5 transition-colors hover:bg-surface-2/50">
+            <p className="label-caps text-[11px]">{s.label}</p>
+            <p className="num mt-2 text-3xl font-semibold tracking-tight">{s.value}</p>
             <p className="mt-1 text-xs text-muted-foreground">{s.meta}</p>
           </div>
         ))}
       </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.35fr_1fr]">
-        {/* Momentum */}
+        {/* Application Momentum Chart */}
         <section className="panel noise p-5 sm:p-6">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
             <div className="min-w-0">
-              <p className="label-caps">Application momentum</p>
-              <h2 className="mt-1.5 text-lg font-semibold">Last eight weeks</h2>
+              <p className="label-caps">Application Momentum</p>
+              <h2 className="mt-1 text-lg font-semibold">Weekly Cadence (Last 8 Weeks)</h2>
             </div>
-            <span className="num shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">
-              {momentum.reduce((n, m) => n + m.count, 0)} total
+            <span className="num shrink-0 rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground bg-surface">
+              {momentum.reduce((n, m) => n + m.count, 0)} submitted
             </span>
           </div>
+
           <div className="mt-6 h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={momentum} margin={{ left: -24, right: 4, top: 4 }}>
                 <defs>
                   <linearGradient id="mom" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.22} />
+                    <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.25} />
                     <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -168,7 +268,7 @@ export default function Dashboard() {
                   contentStyle={{
                     background: "var(--color-popover)",
                     border: "1px solid var(--color-border)",
-                    borderRadius: 10,
+                    borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
@@ -176,101 +276,89 @@ export default function Dashboard() {
                   type="monotone"
                   dataKey="count"
                   stroke="var(--color-primary)"
-                  strokeWidth={1.5}
+                  strokeWidth={2}
                   fill="url(#mom)"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Pipeline distribution */}
+          {/* Pipeline Distribution Bars */}
           <div className="mt-8 border-t border-border pt-6">
-            <p className="label-caps">Pipeline distribution</p>
+            <div className="flex items-center justify-between">
+              <p className="label-caps">Pipeline Stage Distribution</p>
+              <Link href="/pipeline" className="text-xs text-primary hover:underline flex items-center gap-1">
+                View Kanban <ArrowUpRight className="size-3" />
+              </Link>
+            </div>
             <ul className="mt-4 space-y-3">
               {distribution.map((d) => (
                 <li
                   key={d.stage}
                   className="grid grid-cols-[92px_minmax(0,1fr)_32px] items-center gap-3"
                 >
-                  <span className="label-caps">{d.stage}</span>
+                  <span className="label-caps text-[11px]">{d.stage}</span>
                   <span className="h-[6px] w-full overflow-hidden rounded-full bg-surface-2">
                     <span
-                      className="block h-full rounded-full bg-primary/70 transition-[width] duration-500"
+                      className="block h-full rounded-full bg-primary/80 transition-[width] duration-500"
                       style={{ width: `${(d.count / maxStage) * 100}%` }}
                     />
                   </span>
-                  <span className="num text-right text-xs">{d.count}</span>
+                  <span className="num text-right text-xs font-medium">{d.count}</span>
                 </li>
               ))}
             </ul>
           </div>
         </section>
 
+        {/* Side Panel: Career Signals & Upcoming Interviews */}
         <div className="space-y-8">
-          {/* Career signals */}
+          {/* Career Signals */}
           <section className="panel p-5 sm:p-6">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-primary" strokeWidth={1.75} />
-              <p className="label-caps">Career signals</p>
+              <p className="label-caps">Career Signals</p>
             </div>
             <ul className="mt-5 divide-y divide-border">
               <li className="pb-4">
-                <p className="text-sm font-medium">Interview conversion</p>
-                <p className="num mt-1 text-2xl">{stats.conversion}%</p>
+                <p className="text-sm font-medium">Interview Conversion Rate</p>
+                <p className="num mt-1 text-2xl font-semibold">{stats.conversion}%</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {stats.interviews} of your applied roles reached an interview stage.
                 </p>
               </li>
               {topSource && (
                 <li className="py-4">
-                  <p className="text-sm font-medium">Strongest source</p>
-                  <p className="mt-1 text-lg">{topSource.source}</p>
+                  <p className="text-sm font-medium">Strongest Sourcing Channel</p>
+                  <p className="mt-1 text-lg font-medium text-foreground">{topSource.source}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {Math.round(topSource.rate * 100)}% advance rate across {topSource.total}{" "}
-                    applications.
+                    tracked applications.
                   </p>
                 </li>
               )}
-              <li className="pt-4">
-                <p className="text-sm font-medium">Follow-up opportunities</p>
-                <ul className="mt-2 space-y-2">
-                  {followUps.map((a) => (
-                    <li key={a.id}>
-                      <Link
-                        href={`/applications/${a.id}`}
-                        className="group flex items-center gap-3 text-sm"
-                      >
-                        <span className="min-w-0 flex-1 truncate group-hover:text-primary">
-                          {a.company}
-                        </span>
-                        <span className="num text-xs text-muted-foreground">
-                          {relative(a.updatedAt)}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                  {!followUps.length && (
-                    <li className="text-xs text-muted-foreground">Nothing waiting on you.</li>
-                  )}
-                </ul>
-              </li>
             </ul>
           </section>
 
-          {/* Upcoming interviews */}
+          {/* Upcoming Interviews */}
           <section className="panel p-5 sm:p-6">
-            <div className="flex items-center gap-2">
-              <CalendarClock className="size-4 text-primary" strokeWidth={1.75} />
-              <p className="label-caps">Upcoming interviews</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="size-4 text-primary" strokeWidth={1.75} />
+                <p className="label-caps">Upcoming Interviews</p>
+              </div>
+              <Link href="/calendar" className="text-xs text-primary hover:underline">
+                View Calendar
+              </Link>
             </div>
-            <ul className="mt-5 space-y-4">
-              {upcoming.map((i) => (
+            <ul className="mt-5 space-y-3">
+              {upcomingInterviews.map((i) => (
                 <li key={i.id}>
                   <Link
                     href={`/applications/${i.app.id}`}
-                    className="group grid grid-cols-[auto_minmax(0,1fr)] gap-3"
+                    className="group grid grid-cols-[auto_minmax(0,1fr)] gap-3 p-2 rounded-md hover:bg-surface-2 transition-colors"
                   >
-                    <span className="num rounded-md border border-border px-2 py-1 text-xs">
+                    <span className="num shrink-0 rounded border border-border px-2 py-1 text-xs text-muted-foreground bg-surface">
                       {fmtShort(i.at)}
                     </span>
                     <span className="min-w-0">
@@ -284,34 +372,69 @@ export default function Dashboard() {
                   </Link>
                 </li>
               ))}
-              {!upcoming.length && (
-                <li className="text-xs text-muted-foreground">No interviews scheduled yet.</li>
+              {!upcomingInterviews.length && (
+                <li className="text-xs text-muted-foreground py-2">No upcoming interviews scheduled.</li>
               )}
             </ul>
           </section>
         </div>
       </div>
 
-      {/* Activity */}
+      {/* Recent Applications List */}
       <section className="mt-8 panel p-5 sm:p-6">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="size-4 text-primary" strokeWidth={1.75} />
-          <p className="label-caps">Recent activity</p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="size-4 text-primary" strokeWidth={1.75} />
+            <p className="label-caps">Recent Applications & Progress</p>
+          </div>
+          <Link href="/applications" className="text-xs text-primary hover:underline flex items-center gap-1">
+            View All ({apps.length}) <ArrowUpRight className="size-3" />
+          </Link>
         </div>
-        <ul className="mt-5 divide-y divide-border">
-          {activity.map((t) => (
-            <li key={t.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3">
-              <div className="min-w-0">
-                <Link href={`/applications/${t.app.id}`} className="truncate text-sm hover:text-primary">
-                  <span className="font-medium">{t.app.company}</span>
-                  <span className="text-muted-foreground"> — {t.label}</span>
-                </Link>
-                <JourneyRail stage={t.app.stage} className="mt-2" />
-              </div>
-              <span className="num shrink-0 text-xs text-muted-foreground">{relative(t.at)}</span>
-            </li>
-          ))}
-        </ul>
+
+        {recentApps.length > 0 ? (
+          <div className="divide-y divide-border">
+            {recentApps.map((a) => {
+              const meta = STAGE_META[a.stage] || STAGE_META.SAVED;
+              return (
+                <div
+                  key={a.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3.5 transition-colors hover:bg-surface-2/40 px-2 rounded-md"
+                >
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/applications/${a.id}`} className="group flex items-center gap-2">
+                      <span className="font-medium text-sm text-foreground group-hover:text-primary truncate">
+                        {a.company}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">— {a.role}</span>
+                    </Link>
+                    <JourneyRail stage={a.stage} className="mt-2 max-w-xs" />
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={cn("label-caps text-[10px] px-2 py-0.5 rounded border", meta.badge)}>
+                      {meta.label}
+                    </span>
+                    <span className="num text-xs text-muted-foreground">
+                      Updated {relative(a.updatedAt)}
+                    </span>
+                    <Link
+                      href={`/applications/${a.id}`}
+                      className="rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-border-strong transition-colors"
+                      title="View Dossier"
+                    >
+                      <ArrowUpRight className="size-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No applications tracked yet. Click <strong>+ Add Application</strong> above to start your job search pipeline.
+          </div>
+        )}
       </section>
     </AppShell>
   );

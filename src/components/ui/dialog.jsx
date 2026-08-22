@@ -34,6 +34,10 @@ export function DialogTitle({ children }) {
   return <h2 className="font-display text-xl font-semibold tracking-tight">{children}</h2>;
 }
 
+export function DialogDescription({ children, className }) {
+  return <p className={cn("text-xs text-muted-foreground mt-0.5", className)}>{children}</p>;
+}
+
 export function DialogFooter({ children, className }) {
   return <div className={cn("flex justify-end gap-2", className)}>{children}</div>;
 }
