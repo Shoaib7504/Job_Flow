@@ -339,5 +339,124 @@ export function useStore() {
     toggleReminder,
     remove,
     updateApp,
+    loadSampleWorkspace,
   };
+}
+
+export async function loadSampleWorkspace() {
+  const now = Date.now();
+  const sampleApps = [
+    {
+      id: uid(),
+      company: "Acme Corp",
+      role: "Senior React Developer",
+      location: "San Francisco, CA (Hybrid)",
+      salary: "$150,000 - $175,000",
+      source: "Referral",
+      stage: "APPLIED",
+      priority: "HIGH",
+      link: "https://acme.example.com/careers/react-dev",
+      notes: "Referred by Sarah from previous team. Follow up expected within 7 days.",
+      appliedAt: new Date(now - 9 * 86400000).toISOString(),
+      updatedAt: new Date(now - 9 * 86400000).toISOString(),
+      interviews: [],
+      reminders: [
+        { id: uid(), label: "Send polite follow-up email to recruiter", at: new Date(now).toISOString(), done: false },
+      ],
+      timeline: [
+        { id: uid(), at: new Date(now - 9 * 86400000).toISOString(), label: "Application submitted" },
+      ],
+    },
+    {
+      id: uid(),
+      company: "Linear",
+      role: "Frontend Engineer",
+      location: "Remote",
+      salary: "$160,000",
+      source: "LinkedIn",
+      stage: "INTERVIEW",
+      priority: "HIGH",
+      link: "https://linear.app/careers",
+      notes: "Technical architecture discussion scheduled. Review React 19 concurrent features.",
+      appliedAt: new Date(now - 14 * 86400000).toISOString(),
+      updatedAt: new Date(now - 1 * 86400000).toISOString(),
+      interviews: [
+        { id: uid(), kind: "Technical Loop", withWhom: "Lead Engineer", at: new Date(now + 86400000).toISOString() },
+      ],
+      reminders: [],
+      timeline: [
+        { id: uid(), at: new Date(now - 14 * 86400000).toISOString(), label: "Application submitted" },
+        { id: uid(), at: new Date(now - 7 * 86400000).toISOString(), label: "Moved to SCREENING" },
+        { id: uid(), at: new Date(now - 1 * 86400000).toISOString(), label: "Moved to INTERVIEW" },
+      ],
+    },
+    {
+      id: uid(),
+      company: "Stripe",
+      role: "Product Engineer",
+      location: "New York, NY",
+      salary: "$180,000",
+      source: "Company site",
+      stage: "SAVED",
+      priority: "HIGH",
+      link: "https://stripe.com/jobs",
+      notes: "Need to polish resume project section before submitting.",
+      appliedAt: new Date(now - 2 * 86400000).toISOString(),
+      updatedAt: new Date(now - 2 * 86400000).toISOString(),
+      interviews: [],
+      reminders: [],
+      timeline: [
+        { id: uid(), at: new Date(now - 2 * 86400000).toISOString(), label: "Saved role to dossier" },
+      ],
+    },
+    {
+      id: uid(),
+      company: "Vercel",
+      role: "UI Systems Engineer",
+      location: "Remote",
+      salary: "$170,000",
+      source: "Job board",
+      stage: "SCREENING",
+      priority: "MEDIUM",
+      link: "https://vercel.com/careers",
+      notes: "Recruiter screen completed cleanly. Awaiting hiring manager calendar invite.",
+      appliedAt: new Date(now - 5 * 86400000).toISOString(),
+      updatedAt: new Date(now - 2 * 86400000).toISOString(),
+      interviews: [],
+      reminders: [],
+      timeline: [
+        { id: uid(), at: new Date(now - 5 * 86400000).toISOString(), label: "Application submitted" },
+        { id: uid(), at: new Date(now - 2 * 86400000).toISOString(), label: "Moved to SCREENING" },
+      ],
+    },
+    {
+      id: uid(),
+      company: "Supabase",
+      role: "Fullstack Engineer",
+      location: "Remote",
+      salary: "$165,000",
+      source: "Cold email",
+      stage: "OFFER",
+      priority: "HIGH",
+      link: "https://supabase.com/careers",
+      notes: "Offer received! Reviewing equity package and health benefits.",
+      appliedAt: new Date(now - 25 * 86400000).toISOString(),
+      updatedAt: new Date(now - 1 * 86400000).toISOString(),
+      interviews: [
+        { id: uid(), kind: "Recruiter Screen", withWhom: "Talent Partner", at: new Date(now - 20 * 86400000).toISOString() },
+        { id: uid(), kind: "Final Loop", withWhom: "Engineering VP", at: new Date(now - 5 * 86400000).toISOString() },
+      ],
+      reminders: [],
+      timeline: [
+        { id: uid(), at: new Date(now - 25 * 86400000).toISOString(), label: "Application submitted" },
+        { id: uid(), at: new Date(now - 20 * 86400000).toISOString(), label: "Moved to SCREENING" },
+        { id: uid(), at: new Date(now - 10 * 86400000).toISOString(), label: "Moved to INTERVIEW" },
+        { id: uid(), at: new Date(now - 1 * 86400000).toISOString(), label: "Moved to OFFER" },
+      ],
+    },
+  ];
+
+  apps = sampleApps;
+  emit();
+  return sampleApps;
 }

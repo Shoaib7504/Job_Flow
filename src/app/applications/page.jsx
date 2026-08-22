@@ -27,7 +27,7 @@ export default function ApplicationsPage() {
 }
 
 function Applications() {
-  const { apps, isFetching } = useStore();
+  const { apps, isFetching, loadSampleWorkspace } = useStore();
   const { openAddModal } = useAppShell();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -243,19 +243,27 @@ function Applications() {
             </p>
           </div>
 
-          <div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
             {apps.length === 0 ? (
-              <button
-                onClick={openAddModal}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm"
-              >
-                <PlusCircle className="size-4" />
-                + Add Your First Application
-              </button>
+              <>
+                <button
+                  onClick={openAddModal}
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm cursor-pointer"
+                >
+                  <PlusCircle className="size-4" />
+                  + Add Your First Application
+                </button>
+                <button
+                  onClick={loadSampleWorkspace}
+                  className="inline-flex items-center gap-2 rounded-md border border-border bg-surface-2 px-4 py-2.5 text-sm font-medium text-foreground hover:border-border-strong transition-colors cursor-pointer"
+                >
+                  Load Sample Workspace
+                </button>
+              </>
             ) : (
               <button
                 onClick={clearAllFilters}
-                className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-2"
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-2 cursor-pointer"
               >
                 <X className="size-4" />
                 Clear Filters

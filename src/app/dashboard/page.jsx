@@ -12,6 +12,7 @@ import {
   Sparkles,
   TrendingUp,
   Zap,
+  Play,
 } from "lucide-react";
 import {
   Area,
@@ -41,15 +42,15 @@ import { cn } from "@/lib/utils";
 const NOW = Date.now();
 
 export default function Dashboard() {
-  const { apps, isFetching } = useStore();
+  const { apps, isFetching, loadSampleWorkspace } = useStore();
   const { openAddModal } = useAppShell();
 
-  // Dynamic greeting based on time of day
+  // Time of day greeting
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return "GOOD MORNING";
+    if (hour < 18) return "GOOD AFTERNOON";
+    return "GOOD EVENING";
   }, []);
 
   const stats = useMemo(() => {
@@ -60,25 +61,22 @@ export default function Dashboard() {
     const applied = apps.filter((a) => stageIndex(a.stage) >= 1).length;
     const conversion = applied ? Math.round((interviews / applied) * 100) : 0;
     
-    // Weekly trend (+X this week)
     const oneWeekAgo = NOW - 7 * 86400000;
     const addedThisWeek = apps.filter((a) => new Date(a.appliedAt).getTime() > oneWeekAgo).length;
 
     return { total, active, interviews, offers, conversion, addedThisWeek };
   }, [apps]);
 
-  // Determine top priority Next Action item
-  const nextActionItem = useMemo(() => {
-    if (!apps.length) return null;
-    const actions = apps
+  // Extract all actionable tasks for "Today's Action Center"
+  const todayTasks = useMemo(() => {
+    if (!apps.length) return [];
+    return apps
       .map((app) => getNextAction(app))
-      .filter(Boolean);
-
-    if (!actions.length) return null;
-
-    // Prioritize high urgency, then medium, then low
-    const urgencyWeight = { high: 3, medium: 2, low: 1 };
-    return actions.sort((a, b) => urgencyWeight[b.urgency] - urgencyWeight[a.urgency])[0];
+      .filter(Boolean)
+      .sort((a, b) => {
+        const weight = { high: 3, medium: 2, low: 1 };
+        return weight[b.urgency] - weight[a.urgency];
+      });
   }, [apps]);
 
   const momentum = useMemo(() => {
@@ -143,16 +141,62 @@ export default function Dashboard() {
     );
   }
 
+  // 🔴 Rich Empty State when 0 applications exist
+  if (apps.length === 0) {
+    return (
+      <AppShell>
+        <PageHeader
+          eyebrow="Job-Search Operating System"
+          title={`${greeting} — YOUR SEARCH STARTS HERE`}
+          description="Add your first application and we'll build your pipeline and daily action items automatically."
+        />
+
+        <div className="rounded-xl border border-primary/20 bg-surface p-8 sm:p-12 text-center my-6 space-y-6 shadow-sm">
+          <div className="p-4 rounded-full bg-primary/10 text-primary w-fit mx-auto">
+            <Sparkles className="size-8" />
+          </div>
+
+          <div className="max-w-lg mx-auto space-y-2">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+              Your Workspace Starts Empty
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Add a real job application in 10 seconds, or click below to load sample demo applications to experience the full command center.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <button
+              onClick={openAddModal}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-md transition-transform hover:-translate-y-px cursor-pointer"
+            >
+              <PlusCircle className="size-4" />
+              + Add Application
+            </button>
+
+            <button
+              onClick={loadSampleWorkspace}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-surface-2 px-5 py-3 text-sm font-medium text-foreground hover:border-border-strong transition-colors cursor-pointer"
+            >
+              <Play className="size-4 text-primary fill-primary" />
+              Load Sample Workspace
+            </button>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Career Command Center"
-        title={`${greeting} — here's what needs your attention today.`}
-        description="A live read of where every opportunity stands, what needs immediate follow-up, and your search momentum."
+        eyebrow="Job-Search Operating System"
+        title={`${greeting} — You have ${todayTasks.length} things to do today.`}
+        description="A live read of where every opportunity stands and what needs your attention right now."
         actions={
           <button
             onClick={openAddModal}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-transform hover:-translate-y-px active:translate-y-0"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-transform hover:-translate-y-px active:translate-y-0 cursor-pointer"
           >
             <PlusCircle className="size-4" />
             + Add Application
@@ -160,52 +204,63 @@ export default function Dashboard() {
         }
       />
 
-      {/* ⚡ NEXT ACTION (Hero Section) */}
+      {/* 🔴 "TODAY'S ACTION CENTER" (Killer UX Feature) */}
       <section className="mb-8 overflow-hidden rounded-xl border border-primary/25 bg-gradient-to-br from-primary/10 via-surface to-surface p-6 shadow-sm relative">
         <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary uppercase tracking-wider">
-              <Zap className="size-3.5 fill-primary" /> Next Action
+            <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
+              <Zap className="size-3.5 fill-primary" /> Today&apos;s Action Center
             </span>
-            {nextActionItem && (
-              <span className="num text-xs text-muted-foreground hidden sm:inline">
-                High Priority Callout
-              </span>
-            )}
           </div>
-          {nextActionItem && (
-            <span className="label-caps text-[11px] text-muted-foreground">
-              {nextActionItem.company}
-            </span>
-          )}
+          <span className="num text-xs text-muted-foreground font-semibold">
+            {todayTasks.length} Pending Actions
+          </span>
         </div>
 
-        {nextActionItem ? (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1 max-w-2xl">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                {nextActionItem.title}
-              </h2>
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <Clock className="size-3.5 shrink-0" />
-                {nextActionItem.subtitle}
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <Link
-                href={`/applications/${nextActionItem.appId}`}
-                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow transition-transform hover:-translate-y-px"
+        {todayTasks.length > 0 ? (
+          <div className="space-y-3">
+            {todayTasks.slice(0, 3).map((item) => (
+              <div
+                key={item.appId}
+                className={cn(
+                  "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg border bg-surface transition-all hover:border-border-strong",
+                  item.urgency === "high" ? "border-destructive/30 bg-destructive/5" : "border-border",
+                )}
               >
-                {nextActionItem.actionLabel}
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
+                <div className="flex items-start gap-3">
+                  <span
+                    className={cn(
+                      "size-3 rounded-full mt-1 shrink-0",
+                      item.urgency === "high"
+                        ? "bg-destructive ring-4 ring-destructive/10"
+                        : item.urgency === "medium"
+                        ? "bg-amber-500 ring-4 ring-amber-500/10"
+                        : "bg-blue-500",
+                    )}
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.subtitle}</p>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/applications/${item.appId}`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow shrink-0 self-start sm:self-auto hover:-translate-y-px transition-transform"
+                >
+                  {item.actionLabel}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="flex items-center gap-3 py-2 text-muted-foreground">
             <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
             <div>
-              <p className="text-sm font-medium text-foreground">All caught up!</p>
+              <p className="text-sm font-medium text-foreground">All caught up for today!</p>
               <p className="text-xs">No overdue follow-ups or pending reminders. Keep adding opportunities to keep your pipeline warm.</p>
             </div>
           </div>

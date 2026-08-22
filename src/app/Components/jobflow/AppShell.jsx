@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -19,6 +19,7 @@ import Logo from "@/app/Components/Logo";
 import RequireAuth from "@/app/Components/RequireAuth";
 import { ThemeToggle } from "@/app/Components/jobflow/ThemeToggle";
 import { AddApplicationModal } from "@/app/Components/jobflow/AddApplicationModal";
+import { CommandPalette } from "@/app/Components/jobflow/CommandPalette";
 import { useAuth, useLogout } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -67,7 +68,31 @@ export function AppShell({ children }) {
   const { user, logout } = useAuth();
   const logoutMutation = useLogout();
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't intercept shortcut if user is typing inside an input/textarea
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCmdPaletteOpen((v) => !v);
+      } else if (e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        setAddModalOpen(true);
+      } else if (e.key === "/") {
+        e.preventDefault();
+        setCmdPaletteOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -138,7 +163,7 @@ export function AppShell({ children }) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => setAddModalOpen(true)}
-                    tooltip="Add Application"
+                    tooltip="Add Application (N)"
                     className="gap-2.5 bg-primary px-3 py-2 font-medium text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground cursor-pointer shadow-sm transition-transform active:translate-y-0"
                   >
                     <PlusCircle className="size-4 shrink-0" strokeWidth={2} />
@@ -157,17 +182,20 @@ export function AppShell({ children }) {
               <SidebarTrigger />
               <Logo className="md:hidden" />
 
-              {/* Quick Search Bar */}
-              <form onSubmit={handleSearchSubmit} className="hidden sm:flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-xs max-w-xs w-full transition-colors focus-within:border-primary/40">
-                <Search className="size-3.5 text-muted-foreground shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search applications..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent outline-none w-full placeholder:text-muted-foreground"
-                />
-              </form>
+              {/* Quick Command & Search Trigger */}
+              <button
+                type="button"
+                onClick={() => setCmdPaletteOpen(true)}
+                className="hidden sm:flex items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-xs max-w-xs w-full text-muted-foreground hover:border-border-strong transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Search className="size-3.5 shrink-0" />
+                  <span>Search or press ⌘K...</span>
+                </span>
+                <kbd className="num rounded border border-border bg-surface-2 px-1.5 py-0.5 text-[10px] font-mono">
+                  ⌘K
+                </kbd>
+              </button>
 
               <div className="ml-auto flex items-center gap-2">
                 <button
@@ -223,6 +251,9 @@ export function AppShell({ children }) {
 
             {/* Global Add Application Modal */}
             <AddApplicationModal open={addModalOpen} onOpenChange={setAddModalOpen} />
+
+            {/* Command Palette Overlay */}
+            <CommandPalette open={cmdPaletteOpen} onOpenChange={setCmdPaletteOpen} />
           </SidebarInset>
         </SidebarProvider>
       </AppShellContext.Provider>
